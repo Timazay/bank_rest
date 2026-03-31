@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 04-insert-roles-data
+      author: Зайцев Тимофей
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  value: '67e2b124-91d3-4a34-96cd-ecf43312a73d'
+              - column:
+                  name: name
+                  value: USER
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  value: 'a6dcc66f-ff00-47c0-87ca-071dc43f4262'
+              - column:
+                  name: name
+                  value: ADMIN

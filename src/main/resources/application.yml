@@ -1,8 +1,44 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
-
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+server:
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
+spring:
+  application:
+    name: BankRest
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: ${SPRING_DATA_SOURCE_URL:jdbc:postgresql://localhost:5433/bank_db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:123}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  sql:
+    init:
+      mode: always
+  liquibase:
+    change-log: classpath:db/migration/db.changelog-master.yaml
+jwt:
+  access:
+    secret: B033l58hntzvDMhwmntgbLJNKy5gFLcGF9KYS1lbt8U=
+    expiration: 900000 # 15 minutes
+  refresh:
+    expiration: 604800000 # 7 days
+    secret: B033l58hntzvDMhwmntgbLJNKy5gFLcGF9KYS1lbt8U=
+encryption:
+  secret-key: ZWF0ZmFpbGVkc2Nob29sYnJlYWttZXRhbGluY2hoaWRkZW5yYW5zdWdnZXN0c3RydWM=
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.security.authentication: DEBUG
+    org.springframework.security.access: DEBUG
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /bank/swagger-ui.html

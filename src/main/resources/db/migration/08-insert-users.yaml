@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 08-insert-users
+      author: "Зайцев Тимофей"
+      changes:
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "id"
+                  value: "29b8f082-ba8f-4699-b1db-0159d43a7dc2"
+              - column:
+                  name: "email"
+                  value: "user1@example.com"
+              - column:
+                  name: "password"
+                  value: "hash_password1"
+              - column:
+                  name: "full_name"
+                  value: "Иванов Иван Иванович"
+              - column:
+                  name: "enabled"
+                  value: "true"
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "id"
+                  value: "e8f64fcc-993f-45c7-a609-343025f96f2b"
+              - column:
+                  name: "email"
+                  value: "user2@example.com"
+              - column:
+                  name: "password"
+                  value: "$2a$10$SPAh/4E1fuitxMXHiBkiL.S6pA56iOAa9WIL.m3AOtumO9t/UFZau" #BCrypt hash for "password123"
+              - column:
+                  name: "full_name"
+                  value: "Петров Петр Петрович"
+              - column:
+                  name: "enabled"
+                  value: "true"
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "id"
+                  value: "33819904-cfb6-43cd-a943-950b7e63fde4"
+              - column:
+                  name: "email"
+                  value: "user3@example.com"
+              - column:
+                  name: "password"
+                  value: "$2a$10$SPAh/4E1fuitxMXHiBkiL.S6pA56iOAa9WIL.m3AOtumO9t/UFZau" #BCrypt hash for "password123" - ПОЛНЫЙ 60 символов
+              - column:
+                  name: "full_name"
+                  value: "Сидоров Сидор Сидорович"
+              - column:
+                  name: "enabled"
+                  value: "true"

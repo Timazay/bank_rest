@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 01-create-roles-table
+      author: Зайцев Тимофей
+      preConditions:
+        - onFail: HALT
+        - not:
+            - tableExists:
+                tableName: roles
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false

@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 09-insert-user_roles
+      author: "Зайцев Тимофей"
+      changes:
+        - insert:
+            tableName: "user_roles"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "33819904-cfb6-43cd-a943-950b7e63fde4"
+              - column:
+                  name: "role_id"
+                  value: "a6dcc66f-ff00-47c0-87ca-071dc43f4262"
+        - insert:
+            tableName: "user_roles"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "33819904-cfb6-43cd-a943-950b7e63fde4"
+              - column:
+                  name: "role_id"
+                  value: "67e2b124-91d3-4a34-96cd-ecf43312a73d"
+        - insert:
+            tableName: "user_roles"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "e8f64fcc-993f-45c7-a609-343025f96f2b"
+              - column:
+                  name: "role_id"
+                  value: "67e2b124-91d3-4a34-96cd-ecf43312a73d"

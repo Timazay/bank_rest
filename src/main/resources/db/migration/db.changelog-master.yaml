@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/01-create-roles-table.yaml
+  - include:
+      file: db/migration/02-create-users-table.yaml
+  - include:
+      file: db/migration/03-create-user_roles-table.yaml
+  - include:
+      file: db/migration/04-insert-roles-data.yaml
+  - include:
+      file: db/migration/05-create-cards-table.yaml
+  - include:
+      file: db/migration/06-create-transactions-table.yaml
+  - include:
+      file: db/migration/07-create-refresh-token-table.yaml
+  - include:
+      file: db/migration/08-insert-users.yaml
+  - include:
+      file: db/migration/09-insert-user_roles.yaml
