@@ -109,7 +109,7 @@ public class AuthServiceTest {
         AuthException exception = assertThrows(AuthException.class,
                 () -> authService.authenticate(request));
 
-        assertEquals("email or password is incorrect", exception.getMessage());
+        assertEquals("userEmail or password is incorrect", exception.getMessage());
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository).findUserByEmail(email);

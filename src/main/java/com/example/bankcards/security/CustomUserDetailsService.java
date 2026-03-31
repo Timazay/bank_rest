@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findUserByEmail(username)
-                        .orElseThrow(()-> new UsernameNotFoundException("There is no such user with such email"));
+                        .orElseThrow(()-> new UsernameNotFoundException("There is no such user with such userEmail"));
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))

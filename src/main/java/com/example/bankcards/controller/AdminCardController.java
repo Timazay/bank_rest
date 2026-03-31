@@ -158,7 +158,7 @@ public class AdminCardController {
             @RequestParam(required = false) Currency currency,
             @RequestParam(required = false) CardStatus status) {
         Page<FindCardResponse> cards = adminCardService
-                .findAllCards(new FindAllCardRequest(page, size, cardType, status, currency));
+                .findAllCards(new FindAllCardRequest(page, size, null, cardType, status, currency));
         return ResponseEntity.ok(cards);
     }
 

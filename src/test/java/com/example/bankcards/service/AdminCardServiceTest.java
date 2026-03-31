@@ -60,7 +60,7 @@ public class AdminCardServiceTest {
     @Test
     void createCard_WhenUserExistsAndValidRequest_ShouldCreateAndReturnCardId() {
         UUID userId = UUID.randomUUID();
-        CreateCardRequest request = new CreateCardRequest(userId, CardType.VISA, Currency.USD);
+        CreateCardRequest request = new CreateCardRequest(userId, CardType.VISA, Currency.USD, 3, 2028);
 
         User user = new User();
         user.setId(userId);
@@ -112,7 +112,7 @@ public class AdminCardServiceTest {
     @Test
     void createCard_WhenUserNotFound_ShouldThrowNotFoundException() {
         UUID nonExistentUserId = UUID.randomUUID();
-        CreateCardRequest request = new CreateCardRequest(nonExistentUserId, CardType.MASTERCARD, Currency.EUR);
+        CreateCardRequest request = new CreateCardRequest(nonExistentUserId, CardType.MASTERCARD, Currency.EUR, 3, 2028);
 
         when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
 
@@ -181,10 +181,8 @@ public class AdminCardServiceTest {
 
         when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
 
-        when(cardRepository.save(any(Card.class))).thenAnswer(invocation -> {
-            Card cardToSave = invocation.getArgument(0);
-            return cardToSave;
-        });
+        when(cardRepository.save(any(Card.class)))
+                .thenAnswer(invocation -> invocation.<Card>getArgument(0));
 
         adminCardService.changeCardStatusToActivate(cardId);
 
@@ -302,9 +300,7 @@ public class AdminCardServiceTest {
         assertEquals(card.getMaskedNumber(), response.maskedNumber());
         assertEquals(card.getBalance(), response.balance());
         assertEquals(card.getCurrency(), response.currency());
-        assertEquals(card.getBlockedAt(), response.blockedAt());
         assertEquals(card.getStatus(), response.status());
-        assertEquals(card.getBlockReason(), response.blockReason());
         assertEquals(card.getCreatedAt(), response.createdAt());
         assertEquals(card.getCardType(), response.cardType());
 
@@ -328,7 +324,7 @@ public class AdminCardServiceTest {
     @Test
     void findAllCards_WhenCardsExist_ShouldReturnPageOfFindCardResponse() {
         FindAllCardRequest request =
-                new FindAllCardRequest(0,10, null, null, null);
+                new FindAllCardRequest(0,10, null, null, null, null);
 
         LocalDateTime createdAt1 = LocalDateTime.now().minusDays(5);
         LocalDateTime createdAt2 = LocalDateTime.now().minusDays(3);
@@ -372,9 +368,7 @@ public class AdminCardServiceTest {
         assertEquals(card1.getMaskedNumber(), response1.maskedNumber());
         assertEquals(card1.getBalance(), response1.balance());
         assertEquals(card1.getCurrency(), response1.currency());
-        assertEquals(card1.getBlockedAt(), response1.blockedAt());
         assertEquals(card1.getStatus(), response1.status());
-        assertEquals(card1.getBlockReason(), response1.blockReason());
         assertEquals(card1.getCreatedAt(), response1.createdAt());
         assertEquals(card1.getCardType(), response1.cardType());
 
@@ -383,9 +377,7 @@ public class AdminCardServiceTest {
         assertEquals(card2.getMaskedNumber(), response2.maskedNumber());
         assertEquals(card2.getBalance(), response2.balance());
         assertEquals(card2.getCurrency(), response2.currency());
-        assertEquals(card2.getBlockedAt(), response2.blockedAt());
         assertEquals(card2.getStatus(), response2.status());
-        assertEquals(card2.getBlockReason(), response2.blockReason());
         assertEquals(card2.getCreatedAt(), response2.createdAt());
         assertEquals(card2.getCardType(), response2.cardType());
 

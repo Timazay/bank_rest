@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -44,12 +45,13 @@ public class GlobalExceptionHandler {
             ConstraintViolationException.class,
             HttpMessageNotReadableException.class,
             MethodArgumentTypeMismatchException.class,
-            MissingServletRequestParameterException.class
+            MissingServletRequestParameterException.class,
+            BadRequestException.class,
+            DataIntegrityViolationException.class
     })
     public ErrorResponseDto handleBadRequest(Exception e) {
-        return new ErrorResponseDto("400 NOT FOUND", e.getMessage());
+        return new ErrorResponseDto("400 BAD REQUEST", e.getMessage());
     }
-
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({
@@ -57,5 +59,13 @@ public class GlobalExceptionHandler {
     })
     public ErrorResponseDto handleAuthException(Exception e) {
         return new ErrorResponseDto("401 UNAUTHORIZED", e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler({
+            ForbiddenException.class
+    })
+    public ErrorResponseDto handleForbiddenException(Exception e) {
+        return new ErrorResponseDto("403 FORBIDDEN", e.getMessage());
     }
 }

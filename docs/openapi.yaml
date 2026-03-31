@@ -1,1 +1,1006 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.1
+info:
+  title: Bank API
+  description: API for managing bank cards
+  version: 1.0.0
+  contact:
+    name: Timofey Zaytsev
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticates user and returns access and refresh tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Returns refresh and access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Auth exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /auth/refresh:
+    put:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Generates new access token using refresh token
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: New access token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessTokenResponse'
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Auth exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+  /admin/cards:
+    post:
+      summary: Create a new card
+      description: Creates a new card for a user (Admin only)
+      operationId: createCard
+      tags:
+        - Admin Cards
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Card created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCardResponse'
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+    get:
+      summary: Get all cards with pagination and filters
+      description: Retrieves a paginated list of cards with optional filtering (Admin only)
+      operationId: getAllCards
+      tags:
+        - Admin Cards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Page number (0-indexed)
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+          description: Number of items per page
+        - name: cardType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CardType'
+          description: Filter by card type
+        - name: currency
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Currency'
+          description: Filter by currency
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CardStatus'
+          description: Filter by card status
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+  /admin/cards/{cardId}:
+    get:
+      summary: Get card by ID
+      description: Retrieves detailed information about a specific card (Admin only)
+      operationId: getCardById
+      tags:
+        - Admin Cards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the card
+      responses:
+        '200':
+          description: Card found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindCardResponse'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+    delete:
+      summary: Delete card (soft delete)
+      description: Changes card status to DELETED or delete from db (Admin only)
+      operationId: deleteCard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCardRequest'
+      responses:
+        '204':
+          description: Card deleted successfully (no content)
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+  /admin/cards/{cardId}/block:
+    put:
+      summary: Block a card
+      description: Changes card status to BLOCKED (Admin only)
+      operationId: blockCard
+      tags:
+        - Admin Cards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockCardRequest'
+      responses:
+        '204':
+          description: Card blocked successfully (no content)
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+  /admin/cards/{cardId}/activate:
+    put:
+      summary: Activate a card
+      description: Changes card status to ACTIVE (Admin only)
+      operationId: activateCard
+      tags:
+        - Admin Cards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the card
+      responses:
+        '204':
+          description: Card activated successfully (no content)
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - Insufficient permissions (ADMIN role required)
+
+  /admin/users/{userId}:
+    get:
+      tags:
+        - Admin Users
+      summary: Get user by ID
+      description: Retrieves user information by user ID (admin only)
+      operationId: getUserById
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: User found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindUserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Forbidden - Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /admin/users:
+    post:
+      tags:
+        - Admin Users
+      summary: Create user
+      description: Creates a new user (admin only)
+      operationId: createUser
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Forbidden - Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /admin/users/{userId}/block:
+    put:
+      tags:
+        - Admin Users
+      summary: Block user
+      description: Blocks a user by ID (admin only)
+      operationId: blockUser
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '204':
+          description: User blocked successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Forbidden - Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /user/cards:
+    get:
+      tags:
+        - User Cards
+      summary: Get user cards
+      description: Retrieves paginated list of cards for the authenticated user
+      operationId: getUserCards
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Page number (0-indexed)
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+          description: Number of items per page
+        - name: cardType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CardType'
+          description: Filter by card type
+        - name: currency
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Currency'
+          description: Filter by currency
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CardStatus'
+          description: Filter by card status
+      responses:
+        '200':
+          description: Cards found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FindCardResponse'
+                  pageable:
+                    type: object
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  last:
+                    type: boolean
+                  size:
+                    type: integer
+                  number:
+                    type: integer
+                  sort:
+                    type: object
+                  first:
+                    type: boolean
+                  numberOfElements:
+                    type: integer
+                  empty:
+                    type: boolean
+        '400':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /user/cards/{cardId}/balance:
+    get:
+      tags:
+        - User Cards
+      summary: Get card balance
+      description: Retrieves current balance for a specific card
+      operationId: getCardBalance
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Card ID
+      responses:
+        '200':
+          description: Balance retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '403':
+          description: Card is blocked or deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Card not found or does not belong to user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /user/cards/transfer:
+    post:
+      tags:
+        - User Cards
+      summary: Transfer between cards
+      description: Transfers funds from one card to another
+      operationId: transferBetweenCards
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Transfer completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          description: Validation exception or insufficient funds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Card is blocked, deleted, or different currency
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for admin authentication
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description:  email
+          example: "john.doe@mail.com"
+        password:
+          type: string
+          format: password
+          description: User password
+          example: "SecurePass123!"
+          writeOnly: true
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          description: JWT refresh token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiresIn:
+          type: integer
+          format: long
+          description: Access token expiration time in seconds
+          example: 3600
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    AccessTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: New JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    CreateCardRequest:
+      type: object
+      required:
+        - userId
+        - cardType
+        - currency
+        - expiryMonth
+        - expiryYear
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: User ID who will own the card
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        cardType:
+          $ref: '#/components/schemas/CardType'
+          description: Card type (e.g., VISA, MASTERCARD)
+          example: "VISA"
+        currency:
+          $ref: '#/components/schemas/Currency'
+          description: Card currency
+          example: "USD"
+          default: "USD"
+        expiryMonth:
+          type: integer
+          description: Expiration month (1-12)
+          example: 12
+          minimum: 1
+          maximum: 12
+        expiryYear:
+          type: integer
+          description: Expiration year (e.g., 2026)
+          example: 2026
+          minimum: 2024
+
+    CreateCardResponse:
+      type: object
+      properties:
+        cardId:
+          type: string
+          format: uuid
+          description: Generated card ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    FindCardResponse:
+      type: object
+      properties:
+        cardId:
+          type: string
+          format: uuid
+        maskedNumber:
+          type: string
+        cardType:
+          $ref: '#/components/schemas/CardType'
+        balance:
+          type: number
+          format: decimal
+          description: Current card balance
+        currency:
+          $ref: '#/components/schemas/Currency'
+        status:
+          $ref: '#/components/schemas/CardStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: Card creation timestamp
+        expiryDate:
+          type: string
+          format: date
+          description: Card expiration date (YYYY-MM-DD)
+
+    BlockCardRequest:
+      type: object
+      required:
+        - blockReason
+      properties:
+        blockReason:
+          type: string
+          description: Reason for blocking the card
+          example: "Card reported stolen"
+          maxLength: 255
+
+    DeleteCardRequest:
+      type: object
+      required:
+        - softDelete
+      properties:
+        softDelete:
+          type: boolean
+          description: Delete soft or not
+    TransferRequest:
+      type: object
+      required:
+        - sourceCardId
+        - toCardId
+        - amount
+      properties:
+        sourceCardId:
+          type: string
+          format: uuid
+          description: Source card ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        targetCardId:
+          type: string
+          format: uuid
+          description: Destination card ID
+          example: "987fcdeb-51a2-43d7-9b15-876543210000"
+        amount:
+          type: number
+          format: decimal
+          description: Transfer amount
+          minimum: 0.01
+          example: 100.50
+        description:
+          type: string
+          example: "Some reason to transfer amount"
+
+    BalanceResponse:
+      type: object
+      properties:
+        maskedNumber:
+          type: string
+          description: Masked card number
+          example: "**** **** **** 1234"
+        balance:
+          type: number
+          format: decimal
+          description: Current card balance
+          example: 1500.50
+        status:
+          $ref: '#/components/schemas/CardStatus'
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    TransferResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+          description: Transaction ID
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+    FindUserResponse:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: User's full name
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User email
+          example: "john.doe@example.com"
+        createdAt:
+          type: string
+          format: date-time
+          description: User creation timestamp
+          example: "2026-01-01T12:00:00Z"
+        enabled:
+          type: boolean
+          description: Whether the user is enabled
+          example: true
+        roleNames:
+          type: array
+          description: List of user roles
+          items:
+            $ref: '#/components/schemas/UserRole'
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - fullName
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address. Must be unique and valid format.
+          maxLength: 100
+          example: "john.doe@example.com"
+        fullName:
+          type: string
+          description: User's full name. Can include first and last name.
+          minLength: 2
+          maxLength: 100
+          pattern: "^[a-zA-Zа-яА-Я\\s'-]+$"
+          example: "John Doe"
+        password:
+          type: string
+          format: password
+          description: |
+            User's password. Must meet security requirements: 
+            at least 8 characters, contain at least one digit, 
+            one lowercase, one uppercase, and one special character (@#$%^&+=!).
+          minLength: 8
+          maxLength: 100
+          pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$"
+          example: "SecurePass123!"
+          writeOnly: true
+
+    CreateUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Created user ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    UserRole:
+      type: string
+      enum:
+        - USER
+        - ADMIN
+        - MANAGER
+      description: User role type
+
+    CardType:
+      type: string
+      enum:
+        - MASTERCARD
+        - VISA
+        - MIR
+      description: Type of the card
+
+    Currency:
+      type: string
+      enum:
+        - USD
+        - EUR
+        - RUB
+      description: Currency code
+
+    CardStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - BLOCKED
+        - DELETED
+        - DEADLINE_HAS_EXPIRED
+      description: Current status of the card
+
+    PageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FindCardResponse'
+        pageable:
+          $ref: '#/components/schemas/Pageable'
+        totalPages:
+          type: integer
+          example: 5
+        totalElements:
+          type: integer
+          example: 100
+        last:
+          type: boolean
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+        sort:
+          $ref: '#/components/schemas/Sort'
+        numberOfElements:
+          type: integer
+          example: 20
+        first:
+          type: boolean
+        empty:
+          type: boolean
+
+    Pageable:
+      type: object
+      properties:
+        sort:
+          $ref: '#/components/schemas/Sort'
+        offset:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+
+    Sort:
+      type: object
+      properties:
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+        empty:
+          type: boolean
+
+    ErrorResponseDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Bad Request"
+        uri:
+          type: string
+          example: "/api/v1/admin/cards"

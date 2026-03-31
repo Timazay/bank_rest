@@ -3,6 +3,8 @@ package com.example.bankcards.util;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Base64;
 import java.util.Random;
 
@@ -47,5 +49,10 @@ public class CardUtils {
             return "**** **** **** " + parts[3];
         }
         return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
+    }
+
+    public LocalDate calculateExpiryDate(int month, int year) {
+        return LocalDate.of(year, month, 1)
+                .withDayOfMonth(YearMonth.of(year, month).lengthOfMonth());
     }
 }

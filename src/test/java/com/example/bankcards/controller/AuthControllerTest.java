@@ -77,13 +77,13 @@ public class AuthControllerTest {
         LoginRequest request = new LoginRequest(email, password);
 
         when(authService.authenticate(any(LoginRequest.class)))
-                .thenThrow(new AuthException("email or password is incorrect"));
+                .thenThrow(new AuthException("userEmail or password is incorrect"));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("email or password is incorrect"))
+                .andExpect(jsonPath("$.message").value("userEmail or password is incorrect"))
                 .andExpect(jsonPath("$.status").value("401 UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").isString());
 
@@ -92,7 +92,7 @@ public class AuthControllerTest {
 
     @Test
     void login_WhenEmailIsInvalid_ShouldReturnBadRequestStatus() throws Exception {
-        String invalidEmail = "invalid-email";
+        String invalidEmail = "invalid-userEmail";
         String password = "password123";
         LoginRequest request = new LoginRequest(invalidEmail, password);
 

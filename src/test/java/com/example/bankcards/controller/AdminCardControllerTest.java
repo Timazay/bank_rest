@@ -59,7 +59,7 @@ public class AdminCardControllerTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void createCard_WhenValidRequestAndAdminAuthority_ShouldReturnCreatedStatusWithCardId() throws Exception {
-        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD);
+        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, 2028);
         CreateCardResponse response = new CreateCardResponse(UUID.randomUUID());
 
         when(adminCardService.createCard(any(CreateCardRequest.class))).thenReturn(response);
@@ -76,7 +76,7 @@ public class AdminCardControllerTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void createCard_WhenUserNotFound_ShouldReturnNotFoundStatus() throws Exception {
-        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD);
+        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, 2028);
 
         when(adminCardService.createCard(any(CreateCardRequest.class)))
                 .thenThrow(new NotFoundException("User not found with id: 999"));
@@ -93,7 +93,7 @@ public class AdminCardControllerTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void createCard_WhenInvalidRequest_ShouldReturnBadRequestStatus() throws Exception {
-        CreateCardRequest request = new CreateCardRequest(null, null, null);
+        CreateCardRequest request = new CreateCardRequest(null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/admin/cards")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -298,9 +298,7 @@ public class AdminCardControllerTest {
                 .maskedNumber("4532****0366")
                 .balance(new BigDecimal("1500.50"))
                 .currency(Currency.USD)
-                .blockedAt(null)
                 .status(CardStatus.ACTIVE)
-                .blockReason(null)
                 .createdAt(LocalDateTime.now().minusDays(5))
                 .cardType(CardType.VISA)
                 .build();
@@ -315,9 +313,7 @@ public class AdminCardControllerTest {
                 .andExpect(jsonPath("$.balance").value(1500.50))
                 .andExpect(jsonPath("$.currency").value("USD"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.cardType").value("VISA"))
-                .andExpect(jsonPath("$.blockedAt").doesNotExist())
-                .andExpect(jsonPath("$.blockReason").doesNotExist());
+                .andExpect(jsonPath("$.cardType").value("VISA"));
 
         verify(adminCardService).findCardById(cardId);
     }

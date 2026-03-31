@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -42,10 +43,10 @@ public class Card {
     private User user;
 
     @Column(name = "card_number", nullable = false, unique = true)
-    private String cardNumber; // Зашифрованный номер
+    private String cardNumber;
 
     @Column(name = "masked_number", nullable = false, length = 19)
-    private String maskedNumber; // Маскированный номер: **** **** **** 1234
+    private String maskedNumber;
 
     @Column(name = "card_type", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
@@ -66,6 +67,9 @@ public class Card {
 
     @Column(name = "blocked_at")
     private LocalDateTime blockedAt;
+
+    @Column(name = "expiry_date", nullable = false)
+    private LocalDate expiryDate;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

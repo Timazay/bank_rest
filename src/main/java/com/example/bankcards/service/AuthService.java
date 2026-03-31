@@ -34,7 +34,7 @@ public class AuthService {
         );
 
         User user = userRepository.findUserByEmail(request.email())
-                .orElseThrow(() -> new AuthException("email or password is incorrect"));
+                .orElseThrow(() -> new AuthException("userEmail or password is incorrect"));
 
         String accessToken = jwtUtils.generateAccessToken(user);
         RefreshToken refreshToken = jwtUtils.generateRefreshToken(user);

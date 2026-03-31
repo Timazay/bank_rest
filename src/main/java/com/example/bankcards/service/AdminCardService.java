@@ -33,6 +33,7 @@ public class AdminCardService {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + request.userId()));
 
+
         String cardNumber = cardUtils.generateCardNumber();
         String maskedNumber = cardUtils.maskCardNumber(cardNumber);
 
@@ -42,6 +43,7 @@ public class AdminCardService {
                 .maskedNumber(maskedNumber)
                 .balance(BigDecimal.ZERO)
                 .status(CardStatus.ACTIVE)
+                .expiryDate(cardUtils.calculateExpiryDate(request.expiryMonth(), request.expiryYear()))
                 .cardType(request.cardType())
                 .currency(request.currency())
                 .build();
@@ -89,11 +91,10 @@ public class AdminCardService {
                 .maskedNumber(card.getMaskedNumber())
                 .balance(card.getBalance())
                 .currency(card.getCurrency())
-                .blockedAt(card.getBlockedAt())
                 .status(card.getStatus())
-                .blockReason(card.getBlockReason())
                 .createdAt(card.getCreatedAt())
                 .cardType(card.getCardType())
+                .expiryDate(card.getExpiryDate())
                 .build();
     }
 
@@ -105,11 +106,10 @@ public class AdminCardService {
                 .maskedNumber(card.getMaskedNumber())
                 .balance(card.getBalance())
                 .currency(card.getCurrency())
-                .blockedAt(card.getBlockedAt())
                 .status(card.getStatus())
-                .blockReason(card.getBlockReason())
                 .createdAt(card.getCreatedAt())
                 .cardType(card.getCardType())
+                .expiryDate(card.getExpiryDate())
                 .build());
     }
 }
