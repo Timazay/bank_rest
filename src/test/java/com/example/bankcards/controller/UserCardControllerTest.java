@@ -2,15 +2,19 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.TestSecurityConfig;
 import com.example.bankcards.dto.request.BalanceRequest;
+import com.example.bankcards.dto.request.CreateApplicationRequest;
 import com.example.bankcards.dto.request.FindAllCardRequest;
 import com.example.bankcards.dto.request.TransferRequest;
 import com.example.bankcards.dto.response.BalanceResponse;
+import com.example.bankcards.dto.response.CreateApplicationResponse;
 import com.example.bankcards.dto.response.FindCardResponse;
 import com.example.bankcards.dto.response.TransferResponse;
+import com.example.bankcards.entity.enums.ApplicationType;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.entity.enums.CardType;
 import com.example.bankcards.entity.enums.Currency;
 import com.example.bankcards.exception.BadRequestException;
+import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.ForbiddenException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.service.UserCardService;
@@ -36,6 +40,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserCardController.class)
 @Import(TestSecurityConfig.class)
 @AutoConfigureMockMvc(addFilters = false)
+@WithMockUser(authorities = "USER")
 public class UserCardControllerTest {
 
     @Autowired
@@ -58,7 +64,6 @@ public class UserCardControllerTest {
     private UserCardService userCardService;
 
     @Test
-    @WithMockUser(authorities = "USER")
     void getUserCards_WhenValidRequest_ThenReturnOkAndPageOfCards() throws Exception {
         int page = 0;
         int size = 10;
@@ -121,7 +126,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void getUserCards_WhenPageIsNegative_ThenReturnBadRequest() throws Exception {
         int page = -1;
         int size = 10;
@@ -137,7 +141,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void getCardBalance_WhenCardExistsAndStatusIsValid_ThenReturnOkAndBalanceResponse() throws Exception {
         UUID cardId = UUID.randomUUID();
 
@@ -162,7 +165,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void getCardBalance_WhenCardNotFound_ThenReturnNotFoundWithErrorResponse() throws Exception {
         UUID cardId = UUID.randomUUID();
 
@@ -179,7 +181,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void getCardBalance_WhenCardIsNotActive_ThenReturnForbiddenWithErrorResponse() throws Exception {
         UUID cardId = UUID.randomUUID();
 
@@ -196,7 +197,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void transferBetweenCards_WhenRequestWithDescription_ThenReturnOk() throws Exception {
         UUID sourceCardId = UUID.randomUUID();
         UUID targetCardId = UUID.randomUUID();
@@ -223,7 +223,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void transferBetweenCards_WhenInsufficientFunds_ThenReturnBadRequest() throws Exception {
         UUID sourceCardId = UUID.randomUUID();
         UUID targetCardId = UUID.randomUUID();
@@ -247,7 +246,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void transferBetweenCards_WhenCardsHaveDifferentCurrencies_ThenReturnForbidden() throws Exception {
         UUID sourceCardId = UUID.randomUUID();
         UUID targetCardId = UUID.randomUUID();
@@ -272,7 +270,6 @@ public class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "USER")
     void transferBetweenCards_WhenTargetCardNotFound_ThenReturnNotFound() throws Exception {
         UUID sourceCardId = UUID.randomUUID();
         UUID targetCardId = UUID.randomUUID();
@@ -294,5 +291,96 @@ public class UserCardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("404 NOT FOUND"))
                 .andExpect(jsonPath("$.message").value("Target card not found or does not belong to user"));
+    }
+
+    @Test
+    void createApplication_WhenValidRequest_ThenReturnCreatedAndCreateApplicationResponse() throws Exception {
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Application")
+                .description(" description")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        UUID applicationId = UUID.randomUUID();
+        CreateApplicationResponse response = new CreateApplicationResponse(applicationId);
+
+        when(userCardService.createApplication(any(String.class), eq(cardId), any(CreateApplicationRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/user/cards/{cardId}/applications", cardId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.applicationId").value(applicationId.toString()));
+    }
+
+    @Test
+    void createApplication_WhenTitleIsBlank_ThenReturnBadRequest() throws Exception {
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .description("description")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        mockMvc.perform(post("/api/v1/user/cards/{cardId}/applications", cardId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("400 BAD REQUEST"))
+                .andExpect(jsonPath("$.message").exists());
+
+    }
+
+    @Test
+    void createApplication_WhenCardNotFound_ThenReturnNotFound() throws Exception {
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Application")
+                .description(" description")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        when(userCardService.createApplication(any(String.class), eq(cardId), any(CreateApplicationRequest.class)))
+                .thenThrow(new NotFoundException("Card not found or does not belong to user"));
+
+        mockMvc.perform(post("/api/v1/user/cards/{cardId}/applications", cardId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("404 NOT FOUND"))
+                .andExpect(jsonPath("$.message").value("Card not found or does not belong to user"));
+    }
+
+    @Test
+    void createApplication_WhenApplicationTypeAlreadyExists_ThenReturnConflict() throws Exception {
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Application")
+                .description(" description")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        when(userCardService.createApplication(any(String.class), eq(cardId), any(CreateApplicationRequest.class)))
+                .thenThrow(new ConflictException("Application form of type DELETE_CARD already exists for this card"));
+
+        mockMvc.perform(post("/api/v1/user/cards/{cardId}/applications", cardId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("409 CONFLICT"))
+                .andExpect(jsonPath("$.message").value("Application form of type DELETE_CARD already exists for this card"));
     }
 }

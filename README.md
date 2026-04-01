@@ -11,3 +11,20 @@ The application runs on port 8080.
 ### Swagger
 http://localhost:8080/bank/swagger-ui.html
 
+## Users credits
+
+### User:
+
+login: 
+user2@example.com
+
+password:
+password123
+
+### Admin:
+
+login:
+user3@example.com
+
+password:
+password123

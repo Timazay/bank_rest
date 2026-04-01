@@ -11,10 +11,12 @@ import com.example.bankcards.entity.enums.CardType;
 import com.example.bankcards.entity.enums.Currency;
 import com.example.bankcards.exception.ErrorResponseDto;
 import com.example.bankcards.service.AdminCardService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +42,15 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin/cards")
 @RequiredArgsConstructor
 @Validated
+@PreAuthorize("hasAuthority('ADMIN')")
+@Tag(name = "Admin Card Management", description = "Administrative endpoints for managing cards, including creation, blocking, activation, deletion, and viewing all cards")
 public class AdminCardController {
 
     private final AdminCardService adminCardService;
 
+    @Operation(
+            summary = "Create a new card",
+            description = "Creates a new card for a user. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -62,11 +69,13 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<CreateCardResponse> createCard(@Valid @RequestBody CreateCardRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminCardService.createCard(request));
     }
 
+    @Operation(
+            summary = "Block a card",
+            description = "Blocks a card by changing its status to BLOCKED. Blocked cards cannot be used for transactions. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -83,7 +92,6 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PutMapping("/{cardId}/block")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> blockCard(
             @PathVariable UUID cardId,
             @Valid @RequestBody BlockCardRequest request) {
@@ -91,6 +99,9 @@ public class AdminCardController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(
+            summary = "Activate a card",
+            description = "Activates a card by changing its status to ACTIVE. Activated cards can be used for transactions. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -107,12 +118,14 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PutMapping("/{cardId}/activate")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> activateCard(@PathVariable UUID cardId) {
         adminCardService.changeCardStatusToActivate(cardId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(
+            summary = "Delete a card",
+            description = "Soft deletes (if softDelete) a card by changing its status to DELETED. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -129,7 +142,6 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @DeleteMapping("/{cardId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteCard(
             @PathVariable UUID cardId,
             @Valid @RequestBody DeleteCardRequest request) {
@@ -137,6 +149,9 @@ public class AdminCardController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(
+            summary = "Get all cards",
+            description = "Retrieves a paginated list of all cards with optional filters. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -150,7 +165,6 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Page<FindCardResponse>> getAllCards(
             @RequestParam @Min(value = 0, message = "Page must be >= 0") int page,
             @RequestParam @Min(value = 1, message = "Size must be >= 1") int size,
@@ -162,6 +176,9 @@ public class AdminCardController {
         return ResponseEntity.ok(cards);
     }
 
+    @Operation(
+            summary = "Get card by ID",
+            description = "Retrieves detailed information about a specific card by its unique identifier. Accessible only to users with ADMIN role.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -175,7 +192,6 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @GetMapping("/{cardId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<FindCardResponse> getCardById(
             @PathVariable UUID cardId) {
         FindCardResponse response = adminCardService.findCardById(cardId);

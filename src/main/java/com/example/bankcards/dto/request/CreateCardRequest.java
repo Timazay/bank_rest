@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
@@ -26,6 +28,8 @@ public record CreateCardRequest(
         Integer expiryMonth,
         @Schema(example = "2026")
         @NotNull(message = "expiryYear is required")
-        Integer expiryYear
+        @Size(min = 4, max = 4, message = "expiryYear not valid")
+        @Pattern(regexp = "^\\d{4}$", message = "expiryYear not valid")
+        String expiryYear
 ) {
 }

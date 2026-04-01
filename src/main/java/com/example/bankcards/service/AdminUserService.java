@@ -1,6 +1,7 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.request.CreateUserRequest;
+import com.example.bankcards.dto.request.FindAllUsersRequest;
 import com.example.bankcards.dto.response.CreateUserResponse;
 import com.example.bankcards.dto.response.FindUserResponse;
 import com.example.bankcards.entity.Role;
@@ -9,7 +10,13 @@ import com.example.bankcards.entity.enums.UserRole;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.repository.UserSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +38,7 @@ public class AdminUserService {
                 .password(passwordEncoder.encode(request.password()))
                 .fullName(request.fullName())
                 .enabled(true)
-                .roles(List.of(roleRepository.findByName(UserRole.USER)))
+                .roles(findAllUsers(request.isAdmin()))
                 .build();
 
        User savedUser = userRepository.save(user);
@@ -58,5 +65,36 @@ public class AdminUserService {
         user.setEnabled(false);
 
         userRepository.save(user);
+    }
+
+    public Page<FindUserResponse> findAll(FindAllUsersRequest request) {
+        Specification<User> spec = Specification
+                .where(UserSpecification.searchByTerm(request.search()))
+                .and(UserSpecification.hasEnabled(request.isEnabled()))
+                .and(UserSpecification.hasRole(request.userRole()));
+
+        Pageable pageable = PageRequest.of(
+                request.page(),
+                request.size(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<User> usersPage = userRepository.findAll(spec, pageable);
+
+        return usersPage.map(
+                (e) -> FindUserResponse.builder()
+                        .userId(e.getId())
+                        .email(e.getEmail())
+                        .enabled(e.getEnabled())
+                        .createdAt(e.getCreatedAt())
+                        .fullName(e.getFullName())
+                        .roleNames(e.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
+                        .build()
+        );
+    }
+
+    private List<Role> findAllUsers(boolean isAdmin) {
+        return isAdmin ? roleRepository.findAll()
+                : List.of(roleRepository.findByName(UserRole.USER));
     }
 }

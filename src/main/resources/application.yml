@@ -28,7 +28,7 @@ jwt:
     expiration: 900000 # 15 minutes
   refresh:
     expiration: 604800000 # 7 days
-    secret: B033l58hntzvDMhwmntgbLJNKy5gFLcGF9KYS1lbt8U=
+    secret: DIGPNb91w0wxZBYLFw6GCfS4V//Cz22OwWwQ4piN1XE=
 encryption:
   secret-key: ZWF0ZmFpbGVkc2Nob29sYnJlYWttZXRhbGluY2hoaWRkZW5yYW5zdWdnZXN0c3RydWM=
 logging:

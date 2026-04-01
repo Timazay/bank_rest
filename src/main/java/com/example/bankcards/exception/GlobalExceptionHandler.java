@@ -68,4 +68,12 @@ public class GlobalExceptionHandler {
     public ErrorResponseDto handleForbiddenException(Exception e) {
         return new ErrorResponseDto("403 FORBIDDEN", e.getMessage());
     }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler({
+            ConflictException.class
+    })
+    public ErrorResponseDto handleConflictException(Exception e) {
+        return new ErrorResponseDto("409 CONFLICT", e.getMessage());
+    }
 }

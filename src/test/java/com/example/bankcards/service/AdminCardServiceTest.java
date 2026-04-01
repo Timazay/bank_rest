@@ -60,7 +60,7 @@ public class AdminCardServiceTest {
     @Test
     void createCard_WhenUserExistsAndValidRequest_ShouldCreateAndReturnCardId() {
         UUID userId = UUID.randomUUID();
-        CreateCardRequest request = new CreateCardRequest(userId, CardType.VISA, Currency.USD, 3, 2028);
+        CreateCardRequest request = new CreateCardRequest(userId, CardType.VISA, Currency.USD, 3, "2028");
 
         User user = new User();
         user.setId(userId);
@@ -112,7 +112,7 @@ public class AdminCardServiceTest {
     @Test
     void createCard_WhenUserNotFound_ShouldThrowNotFoundException() {
         UUID nonExistentUserId = UUID.randomUUID();
-        CreateCardRequest request = new CreateCardRequest(nonExistentUserId, CardType.MASTERCARD, Currency.EUR, 3, 2028);
+        CreateCardRequest request = new CreateCardRequest(nonExistentUserId, CardType.MASTERCARD, Currency.EUR, 3, "2028");
 
         when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
 

@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/migration/08-insert-users.yaml
   - include:
       file: db/migration/09-insert-user_roles.yaml
+  - include:
+      file: db/migration/10-create-application_forms-table.yaml

@@ -47,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AdminCardController.class)
 @Import(TestSecurityConfig.class)
 @AutoConfigureMockMvc(addFilters = false)
+@WithMockUser(authorities = "ADMIN")
 public class AdminCardControllerTest {
 
     @MockBean
@@ -59,7 +60,7 @@ public class AdminCardControllerTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void createCard_WhenValidRequestAndAdminAuthority_ShouldReturnCreatedStatusWithCardId() throws Exception {
-        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, 2028);
+        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, "2028");
         CreateCardResponse response = new CreateCardResponse(UUID.randomUUID());
 
         when(adminCardService.createCard(any(CreateCardRequest.class))).thenReturn(response);
@@ -76,7 +77,7 @@ public class AdminCardControllerTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void createCard_WhenUserNotFound_ShouldReturnNotFoundStatus() throws Exception {
-        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, 2028);
+        CreateCardRequest request = new CreateCardRequest(UUID.randomUUID(), CardType.VISA, Currency.USD, 3, "2028");
 
         when(adminCardService.createCard(any(CreateCardRequest.class)))
                 .thenThrow(new NotFoundException("User not found with id: 999"));

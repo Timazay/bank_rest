@@ -30,7 +30,10 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
         return findAll(spec, pageable);
     }
 
-    @Query("SELECT c FROM Card c JOIN c.user u WHERE c.id = :cardId AND u.email = :email")
+    @Query("SELECT c FROM Card c " +
+            "JOIN FETCH c.user u " +
+            "LEFT JOIN FETCH c.applicationForms a " +
+            "WHERE c.id = :cardId AND u.email = :email")
     Optional<Card> findByIdAndUsername(@Param("cardId") UUID cardId, @Param("email") String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

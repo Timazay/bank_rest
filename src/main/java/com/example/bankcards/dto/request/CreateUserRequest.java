@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record CreateUserRequest(
         @Schema(
                 description = "User's email address. Must be unique and valid format.",
@@ -35,6 +37,12 @@ public record CreateUserRequest(
                 regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$",
                 message = "Password must contain at least one digit, one lowercase, one uppercase, and one special character (@#$%^&+=!)"
         )
-        String password
+        String password,
+        @Schema(
+                description = "Flag indicating whether the user should be created with administrator privileges. " +
+                        "If set to true, the user will have ADMIN role in addition to the default USER role. " +
+                        "Default value is false."
+        )
+        boolean isAdmin
 ) {
 }

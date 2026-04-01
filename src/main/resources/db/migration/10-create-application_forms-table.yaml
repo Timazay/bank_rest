@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-create-application_forms-table
+      author: Тимофей Зайцев
+      labels: application-forms
+      comment: Create application_forms table for storing user applications
+      changes:
+        - createTable:
+            tableName: application_forms
+            remarks: "Table for storing user application requests (deletion, block, limit changes, etc.)"
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: card_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_application_form_card
+                    references: cards(id)

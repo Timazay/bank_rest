@@ -43,7 +43,7 @@ public class AdminCardService {
                 .maskedNumber(maskedNumber)
                 .balance(BigDecimal.ZERO)
                 .status(CardStatus.ACTIVE)
-                .expiryDate(cardUtils.calculateExpiryDate(request.expiryMonth(), request.expiryYear()))
+                .expiryDate(cardUtils.calculateExpiryDate(request.expiryMonth(), Integer.parseInt(request.expiryYear())))
                 .cardType(request.cardType())
                 .currency(request.currency())
                 .build();

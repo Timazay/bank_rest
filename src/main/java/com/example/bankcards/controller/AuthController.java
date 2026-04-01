@@ -7,10 +7,12 @@ import com.example.bankcards.dto.request.LoginRequest;
 import com.example.bankcards.dto.request.RefreshTokenRequest;
 import com.example.bankcards.exception.ErrorResponseDto;
 import com.example.bankcards.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,10 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "Login controller")
 public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(
+            summary = "User login",
+            description = "Authenticates user with username/email and password. Returns access and refresh tokens.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -49,6 +55,9 @@ public class AuthController {
         return authService.authenticate(request);
     }
 
+    @Operation(
+            summary = "Refresh access token",
+            description = "Generates a new access token using a valid refresh token.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",

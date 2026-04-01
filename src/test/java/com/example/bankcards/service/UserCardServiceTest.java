@@ -1,17 +1,23 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.request.BalanceRequest;
+import com.example.bankcards.dto.request.CreateApplicationRequest;
 import com.example.bankcards.dto.request.FindAllCardRequest;
 import com.example.bankcards.dto.request.TransferRequest;
 import com.example.bankcards.dto.response.BalanceResponse;
+import com.example.bankcards.dto.response.CreateApplicationResponse;
 import com.example.bankcards.dto.response.FindCardResponse;
 import com.example.bankcards.dto.response.TransferResponse;
+import com.example.bankcards.entity.ApplicationForm;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.Transaction;
+import com.example.bankcards.entity.enums.ApplicationType;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.entity.enums.CardType;
 import com.example.bankcards.entity.enums.Currency;
+import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
+import com.example.bankcards.repository.ApplicationRepository;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
@@ -28,6 +34,7 @@ import org.springframework.data.domain.PageRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +55,8 @@ public class UserCardServiceTest {
     private CardRepository cardRepository;
     @Mock
     private TransactionRepository transactionRepository;
+    @Mock
+    private ApplicationRepository applicationRepository;
     @InjectMocks
     private UserCardService userCardService;
     @Captor
@@ -293,5 +302,99 @@ public class UserCardServiceTest {
                 .findByIdAndUsernameWithLock(sourceCardId, email);
         verify(cardRepository, times(1))
                 .findByIdAndUsernameWithLock(targetCardId, email);
+    }
+
+    @Test
+    void createApplication_WhenValidRequest_ThenReturnCreateApplicationResponse() {
+        String email = "user@example.com";
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Delete")
+                .description("Request to delete")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        Card card = Card.builder()
+                .id(cardId)
+                .maskedNumber("****1234")
+                .applicationForms(new ArrayList<>())
+                .build();
+
+        ApplicationForm savedForm = ApplicationForm.builder()
+                .id(UUID.randomUUID())
+                .title(request.title())
+                .description(request.description())
+                .type(request.type())
+                .card(card)
+                .build();
+
+        when(cardRepository.findByIdAndUsername(cardId, email)).thenReturn(Optional.of(card));
+        when(applicationRepository.save(any(ApplicationForm.class))).thenReturn(savedForm);
+
+        CreateApplicationResponse response = userCardService.createApplication(email, cardId, request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.applicationId()).isEqualTo(savedForm.getId());
+
+        verify(cardRepository, times(1)).findByIdAndUsername(cardId, email);
+        verify(applicationRepository, times(1)).save(any(ApplicationForm.class));
+    }
+
+    @Test
+    void createApplication_WhenCardNotFound_ThenThrowNotFoundException() {
+        String email = "user@example.com";
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Delete")
+                .description("Request to delete")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        when(cardRepository.findByIdAndUsername(cardId, email)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userCardService.createApplication(email, cardId, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Card not found or does not belong to user");
+
+        verify(cardRepository, times(1)).findByIdAndUsername(cardId, email);
+        verify(applicationRepository, never()).save(any(ApplicationForm.class));
+    }
+
+    @Test
+    void createApplication_WhenApplicationTypeAlreadyExists_ThenThrowConflictException() {
+        String email = "user@example.com";
+        UUID cardId = UUID.randomUUID();
+
+        CreateApplicationRequest request = CreateApplicationRequest.builder()
+                .title("Delete")
+                .description("Request to delete")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        ApplicationForm existingForm = ApplicationForm.builder()
+                .id(UUID.randomUUID())
+                .title("Existing Application")
+                .description("Existing description")
+                .type(ApplicationType.DELETE_CARD)
+                .build();
+
+        Card card = Card.builder()
+                .id(cardId)
+                .maskedNumber("****1234")
+                .applicationForms(new ArrayList<>())
+                .build();
+
+        card.getApplicationForms().add(existingForm);
+
+        when(cardRepository.findByIdAndUsername(cardId, email)).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> userCardService.createApplication(email, cardId, request))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Application form of type DELETE_CARD already exists for this card");
+
+        verify(cardRepository, times(1)).findByIdAndUsername(cardId, email);
+        verify(applicationRepository, never()).save(any(ApplicationForm.class));
     }
 }
