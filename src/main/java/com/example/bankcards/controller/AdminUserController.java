@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -45,7 +46,8 @@ public class AdminUserController {
 
     @Operation(
             summary = "Get user by ID",
-            description = "Retrieves detailed information about a specific user by their unique identifier. Accessible only to users with ADMIN role.")
+            description = "Retrieves detailed information about a specific user by their unique identifier. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/{userId}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found successfully",
@@ -64,7 +66,8 @@ public class AdminUserController {
 
     @Operation(
             summary = "Create new user",
-            description = "Creates a new user account with the specified details. Accessible only to users with ADMIN role.")
+            description = "Creates a new user account with the specified details. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -83,7 +86,8 @@ public class AdminUserController {
 
     @Operation(
             summary = "Block user",
-            description = "Blocks a user account by setting enabled status to false. Blocked users cannot access the system. Accessible only to users with ADMIN role.")
+            description = "Blocks a user account by setting enabled status to false. Blocked users cannot access the system. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "User blocked successfully (enable = false)"),
             @ApiResponse(responseCode = "404",
@@ -101,7 +105,8 @@ public class AdminUserController {
 
     @Operation(
             summary = "Get all users",
-            description = "Retrieves a paginated list of users with optional filters for search term, role, and enabled status. Accessible only to users with ADMIN role.")
+            description = "Retrieves a paginated list of users with optional filters for search term, role, and enabled status. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",

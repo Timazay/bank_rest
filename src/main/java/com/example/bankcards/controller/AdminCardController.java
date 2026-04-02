@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -50,7 +51,8 @@ public class AdminCardController {
 
     @Operation(
             summary = "Create a new card",
-            description = "Creates a new card for a user. Accessible only to users with ADMIN role.")
+            description = "Creates a new card for a user. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -75,7 +77,8 @@ public class AdminCardController {
 
     @Operation(
             summary = "Block a card",
-            description = "Blocks a card by changing its status to BLOCKED. Blocked cards cannot be used for transactions. Accessible only to users with ADMIN role.")
+            description = "Blocks a card by changing its status to BLOCKED. Blocked cards cannot be used for transactions. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -101,7 +104,8 @@ public class AdminCardController {
 
     @Operation(
             summary = "Activate a card",
-            description = "Activates a card by changing its status to ACTIVE. Activated cards can be used for transactions. Accessible only to users with ADMIN role.")
+            description = "Activates a card by changing its status to ACTIVE. Activated cards can be used for transactions. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -125,7 +129,8 @@ public class AdminCardController {
 
     @Operation(
             summary = "Delete a card",
-            description = "Soft deletes (if softDelete) a card by changing its status to DELETED. Accessible only to users with ADMIN role.")
+            description = "Soft deletes (if softDelete) a card by changing its status to DELETED. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -151,7 +156,8 @@ public class AdminCardController {
 
     @Operation(
             summary = "Get all cards",
-            description = "Retrieves a paginated list of all cards with optional filters. Accessible only to users with ADMIN role.")
+            description = "Retrieves a paginated list of all cards with optional filters. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -165,20 +171,20 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @GetMapping
-    public ResponseEntity<Page<FindCardResponse>> getAllCards(
+    public Page<FindCardResponse> getAllCards(
             @RequestParam @Min(value = 0, message = "Page must be >= 0") int page,
             @RequestParam @Min(value = 1, message = "Size must be >= 1") int size,
             @RequestParam(required = false) CardType cardType,
             @RequestParam(required = false) Currency currency,
             @RequestParam(required = false) CardStatus status) {
-        Page<FindCardResponse> cards = adminCardService
+        return adminCardService
                 .findAllCards(new FindAllCardRequest(page, size, null, cardType, status, currency));
-        return ResponseEntity.ok(cards);
     }
 
     @Operation(
             summary = "Get card by ID",
-            description = "Retrieves detailed information about a specific card by its unique identifier. Accessible only to users with ADMIN role.")
+            description = "Retrieves detailed information about a specific card by its unique identifier. Accessible only to users with ADMIN role.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -192,9 +198,7 @@ public class AdminCardController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @GetMapping("/{cardId}")
-    public ResponseEntity<FindCardResponse> getCardById(
-            @PathVariable UUID cardId) {
-        FindCardResponse response = adminCardService.findCardById(cardId);
-        return ResponseEntity.ok(response);
+    public FindCardResponse getCardById(@PathVariable UUID cardId) {
+        return adminCardService.findCardById(cardId);
     }
 }

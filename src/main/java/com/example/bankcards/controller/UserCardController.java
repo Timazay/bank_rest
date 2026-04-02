@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -54,7 +55,8 @@ public class UserCardController {
 
     @Operation(
             summary = "Get user cards",
-            description = "Retrieves a paginated list of cards belonging to the authenticated user with optional filters")
+            description = "Retrieves a paginated list of cards belonging to the authenticated user with optional filters",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -87,7 +89,8 @@ public class UserCardController {
 
     @Operation(
             summary = "Get card balance",
-            description = "Retrieves the current balance for a specific card belonging to the authenticated user")
+            description = "Retrieves the current balance for a specific card belonging to the authenticated user",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -114,7 +117,8 @@ public class UserCardController {
 
     @Operation(
             summary = "Top up card balance",
-            description = "Adds funds to a specific card belonging to the authenticated user")
+            description = "Adds funds to a specific card belonging to the authenticated user",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
@@ -144,7 +148,8 @@ public class UserCardController {
 
     @Operation(
             summary = "Transfer between cards",
-            description = "Transfers funds from one card to another. Both cards must belong to the authenticated user and have the same currency")
+            description = "Transfers funds from one card to another. Both cards must belong to the authenticated user and have the same currency",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -179,7 +184,8 @@ public class UserCardController {
 
     @Operation(
             summary = "Create card application to Delete, Activate etc...",
-            description = "Creates a new application form for a card.")
+            description = "Creates a new application form for a card.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
