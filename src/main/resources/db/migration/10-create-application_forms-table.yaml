@@ -1,8 +1,12 @@
 databaseChangeLog:
   - changeSet:
       id: 10-create-application_forms-table
-      author: Тимофей Зайцев
-      labels: application-forms
+      author: "Зайцев Тимофей"
+      preConditions:
+        - onFail: HALT
+        - not:
+            - tableExists:
+                tableName: application_forms
       comment: Create application_forms table for storing user applications
       changes:
         - createTable:

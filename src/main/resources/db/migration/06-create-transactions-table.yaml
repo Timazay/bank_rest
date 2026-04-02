@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 06-create-transactions-table
-      author: Зайцев Тимофей
+      author: "Зайцев Тимофей"
       preConditions:
         - onFail: HALT
         - not:

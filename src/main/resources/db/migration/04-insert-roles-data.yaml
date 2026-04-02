@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 04-insert-roles-data
-      author: Зайцев Тимофей
+      author: "Зайцев Тимофей"
       changes:
         - insert:
             tableName: roles

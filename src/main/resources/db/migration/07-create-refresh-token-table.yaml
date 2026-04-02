@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 07-create-refresh-token-table.yaml
-      author: assistant
+      author: "Зайцев Тимофей"
       preConditions:
         - onFail: HALT
         - not:
