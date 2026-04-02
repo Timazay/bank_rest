@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
-        // Определяем схему безопасности
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
@@ -20,7 +19,6 @@ public class SwaggerConfig {
                 .in(SecurityScheme.In.HEADER)
                 .name("Authorization");
 
-        // Добавляем требование безопасности
         SecurityRequirement securityRequirement = new SecurityRequirement()
                 .addList("bearerAuth");
 
